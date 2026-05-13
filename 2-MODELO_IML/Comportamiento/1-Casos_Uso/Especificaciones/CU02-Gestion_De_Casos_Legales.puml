@@ -1,0 +1,173 @@
+@startuml
+left to right, direction
+!theme plain
+skinparam backgroundColor #1A1A2E
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+skinparam actor {
+  BackgroundColor #2E2E4E
+  BorderColor #FF8000
+  FontColor #FFFFFF
+  FontStyle bold
+}
+
+skinparam usecase {
+  BackgroundColor #2E2E4E
+  BorderColor #555577
+  FontColor #EEEEEE
+  ArrowColor #AAAAAA
+}
+
+skinparam package {
+  BackgroundColor #11112A
+  BorderColor #444466
+  FontColor #FFFFFF
+  FontStyle bold
+}
+
+skinparam ArrowColor #AAAAAA
+skinparam ArrowFontColor #CCCCCC
+skinparam ArrowFontSize 10
+
+title \nIURIS — Sistema de Gestión de Casos Legales\nDiagrama de Casos de Uso\n
+
+' ─────────────────────────────────────────
+' ACTORES
+' ─────────────────────────────────────────
+actor "Cliente"      as Cliente    #FF8000
+actor "Abogado"      as Abogado    #42A5F5
+actor "Secretaria/o" as Secretaria #81C784
+
+' ─────────────────────────────────────────
+' SISTEMA
+' ─────────────────────────────────────────
+rectangle "IURIS — Sistema de Gestión de Casos Legales" {
+
+  ' ── AUTENTICACIÓN ────────────────────────
+  package "Autenticación" #1E1E3A {
+    usecase "Iniciar sesión"         as UC_Login
+    usecase "Validar credenciales"   as UC_ValidarCred
+    usecase "Generar token JWT"      as UC_JWT
+    usecase "Cerrar sesión"          as UC_Logout
+    usecase "Refrescar token"        as UC_Refresh
+  }
+
+  ' ── GESTIÓN DE CASOS ─────────────────────
+  package "Gestión de Casos" #1E1E3A {
+    usecase "Consultar casos"        as UC_ConsultarCasos
+    usecase "Filtrar y buscar casos" as UC_FiltrarCasos
+    usecase "Ver detalle del caso"   as UC_DetalleCaso
+    usecase "Consultar estado del caso" as UC_EstadoCaso
+    usecase "Registrar nuevo caso"   as UC_RegistrarCaso
+    usecase "Actualizar caso"        as UC_ActualizarCaso
+    usecase "Registrar actuaciones"  as UC_Actuaciones
+    usecase "Cambiar estado del caso" as UC_CambiarEstado
+    usecase "Asignar abogado al caso" as UC_AsignarAbogado
+  }
+
+  ' ── GESTIÓN DE DOCUMENTOS ─────────────────
+  package "Gestión de Documentos" #1E1E3A {
+    usecase "Subir documento"        as UC_SubirDoc
+    usecase "Descargar documento"    as UC_DescargarDoc
+    usecase "Asociar documento a caso" as UC_AsociarDoc
+    usecase "Controlar versiones"    as UC_Versiones
+  }
+
+  ' ── NOTIFICACIONES ───────────────────────
+  package "Notificaciones" #1E1E3A {
+    usecase "Recibir notificación"   as UC_Notificacion
+    usecase "Enviar alerta de estado" as UC_AlertaEstado
+    usecase "Enviar notificación por email" as UC_Email
+  }
+
+  ' ── GESTIÓN DE USUARIOS ──────────────────
+  package "Gestión de Usuarios" #1E1E3A {
+    usecase "Gestionar usuarios"     as UC_GestionUsuarios
+    usecase "Asignar rol"            as UC_AsignarRol
+  }
+
+}
+
+' ─────────────────────────────────────────
+' RELACIONES — CLIENTE
+' ─────────────────────────────────────────
+Cliente --> UC_Login
+Cliente --> UC_ConsultarCasos
+Cliente --> UC_EstadoCaso
+Cliente --> UC_DescargarDoc
+Cliente --> UC_Logout
+
+' ─────────────────────────────────────────
+' RELACIONES — ABOGADO
+' ─────────────────────────────────────────
+Abogado --> UC_Login
+Abogado --> UC_ConsultarCasos
+Abogado --> UC_Actuaciones
+Abogado --> UC_SubirDoc
+Abogado --> UC_ActualizarCaso
+Abogado --> UC_DescargarDoc
+Abogado --> UC_Logout
+
+' ─────────────────────────────────────────
+' RELACIONES — SECRETARIA
+' ─────────────────────────────────────────
+Secretaria --> UC_Login
+Secretaria --> UC_RegistrarCaso
+Secretaria --> UC_AsignarAbogado
+Secretaria --> UC_ConsultarCasos
+Secretaria --> UC_GestionUsuarios
+Secretaria --> UC_Logout
+
+' ─────────────────────────────────────────
+' RELACIONES <<include>>
+' ─────────────────────────────────────────
+' Iniciar sesión siempre incluye validar credenciales y generar JWT
+UC_Login          .> UC_ValidarCred   : <<include>>
+UC_Login          .> UC_JWT           : <<include>>
+
+' Consultar casos siempre incluye filtrar/buscar
+UC_ConsultarCasos .> UC_FiltrarCasos  : <<include>>
+
+' Ver detalle siempre incluye estado del caso
+UC_DetalleCaso    .> UC_EstadoCaso    : <<include>>
+
+' Subir documento siempre incluye asociar al caso
+UC_SubirDoc       .> UC_AsociarDoc    : <<include>>
+
+' Actualizar caso siempre incluye cambiar estado
+UC_ActualizarCaso .> UC_CambiarEstado : <<include>>
+
+' Asignar abogado incluye consultar usuarios disponibles
+UC_AsignarAbogado .> UC_GestionUsuarios : <<include>>
+
+' Registrar nuevo caso incluye asignar rol/permisos
+UC_RegistrarCaso  .> UC_AsignarRol    : <<include>>
+
+' Enviar alerta incluye enviar email
+UC_AlertaEstado   .> UC_Email         : <<include>>
+
+' ─────────────────────────────────────────
+' RELACIONES <<extend>>
+' ─────────────────────────────────────────
+' Refrescar token extiende al inicio de sesión (opcional, si el token expira)
+UC_Refresh        .> UC_Login         : <<extend>>
+
+' Ver detalle extiende a consultar casos (el usuario puede profundizar)
+UC_DetalleCaso    .> UC_ConsultarCasos : <<extend>>
+
+' Registrar actuaciones extiende a ver detalle del caso
+UC_Actuaciones    .> UC_DetalleCaso   : <<extend>>
+
+' Subir documento extiende a ver detalle del caso
+UC_SubirDoc       .> UC_DetalleCaso   : <<extend>>
+
+' Controlar versiones extiende a subir documento (si ya existe una versión previa)
+UC_Versiones      .> UC_SubirDoc      : <<extend>>
+
+' Recibir notificación extiende a cambiar estado (se dispara cuando el estado cambia)
+UC_Notificacion   .> UC_CambiarEstado : <<extend>>
+
+' Alerta de estado extiende a recibir notificación
+UC_AlertaEstado   .> UC_Notificacion  : <<extend>>
+@enduml

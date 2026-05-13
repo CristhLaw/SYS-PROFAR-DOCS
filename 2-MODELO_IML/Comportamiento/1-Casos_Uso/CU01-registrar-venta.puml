@@ -1,0 +1,22 @@
+@startuml
+left to right direction
+!theme amiga
+'DEFINIMOS NUESTROS ACTORES'
+actor "vendedor" as vendedor
+
+package "sistema SYS-PROFAR"{
+    usecase "registrar venta" as registrar
+    usecase "Aunteticar ususario" as auth
+    usecase "Consulatar/Valida Stock" as inventario
+    usecase "Generar Comprobamte" as comprobante
+    usecase " Registar Auditoria" as auditoria
+
+}
+vendedor --> registrar
+'relaciones
+registrar ..> auth : <<include>>
+registrar ..> inventario: <<include>>
+registrar ..> comprobante: <<include>>
+registrar ..> auditoria: <<include>>
+
+@enduml
